@@ -1,0 +1,389 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  fullname    String
+  phone       String
+  password    String
+  email       String?      @unique
+  region      Region?      @relation(fields: [regionId], references: [id])
+  regionId    Int
+  role        Role         @default(ADMIN)
+  resetOtp    String?
+  resetOtpExp DateTime?
+  verified    Boolean      @default(false)
+  sessions    Session[]
+  comments    Comment[]
+  basket      BasketItem[]
+  CreatedAt   DateTime     @default(now())
+  Star        Star[]
+  USER_YUR    USER_YUR?
+}
+
+model USER_YUR {
+  id      Int    @id @default(autoincrement())
+  INN     String
+  R_S     String
+  Address String
+  Bank    String
+  MFO     String
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+}
+
+model Region {
+  id        Int      @id @default(autoincrement())
+  name_uz   String   @unique
+  name_ru   String   @unique
+  name_en   String   @unique
+  users     User[]
+  CreatedAt DateTime @default(now())
+}
+
+model Session {
+  id     Int      @id @default(autoincrement())
+  User   User     @relation(fields: [userId], references: [id])
+  userId Int
+  date   DateTime @default(now())
+  device String
+  ip     String?
+}
+
+model Brand {
+  id        Int      @id @default(autoincrement())
+  name_uz   String   @unique
+  name_ru   String   @unique
+  name_en   String   @unique
+  tools     Tool[]
+  CreatedAt DateTime @default(now())
+}
+
+model Size {
+  id        Int      @id @default(autoincrement())
+  name_uz   String
+  name_ru   String
+  name_en   String
+  tools     Tool[]
+  CreatedAt DateTime @default(now())
+}
+
+model Capacity {
+  id        Int      @id @default(autoincrement())
+  name_uz   String
+  name_ru   String
+  name_en   String
+  tools     Tool[]
+  CreatedAt DateTime @default(now())
+}
+
+model Tool {
+  id             Int            @id @default(autoincrement())
+  name_uz        String         @unique
+  name_ru        String         @unique
+  name_en        String         @unique
+  description_uz String
+  description_ru String
+  description_en String
+  price          Int
+  quantity       Int
+  code           String
+  isActive       Boolean        @default(true)
+  image          String?
+  capacity       Capacity?      @relation(fields: [capacityId], references: [id])
+  capacityId     Int?
+  size           Size?          @relation(fields: [sizeId], references: [id])
+  sizeId         Int?
+  brand          Brand?         @relation(fields: [brandId], references: [id])
+  brandId        Int?
+  products       Product[]
+  masters        Master[]
+  orders         Order[]
+  CreatedAt      DateTime       @default(now())
+  ProductTools   ProductTools[]
+  OrderTools     OrderTools[]
+  OrderItems     OrderItem[]
+  BasketItem     BasketItem[]
+}
+
+model level {
+  id            Int             @id @default(autoincrement())
+  name_uz       String
+  name_ru       String
+  name_en       String
+  products      Product[]
+  CreatedAt     DateTime        @default(now())
+  MasterProduct MasterProduct[]
+}
+
+model Product {
+  id              Int             @id @default(autoincrement())
+  name_uz         String          @unique
+  name_ru         String          @unique
+  name_en         String          @unique
+  image           String?
+  isActive        Boolean         @default(true)
+  minWorkingHours Int
+  level           level           @relation(fields: [levelId], references: [id])
+  levelId         Int
+  price_hourly    Float
+  price_daily     Float
+  tools           Tool[]
+  orders          Order[]
+  basket          BasketItem[]
+  CreatedAt       DateTime        @default(now())
+  ProductTools    ProductTools[]
+  OrderProducts   OrderProducts[]
+  MasterProducts  MasterProduct[]
+  OrderItems      OrderItem[]
+}
+
+model Master {
+  id             Int              @id @default(autoincrement())
+  fullname       String
+  phone          String           @unique
+  isActive       Boolean          @default(true)
+  year           Int
+  image          String?
+  passportImage  String?
+  about          String?
+  tools          Tool[]
+  orders         Order[]
+  CreatedAt      DateTime         @default(now())
+  OrderMasters   OrderMasters[]
+  CommentMasters CommentMasters[]
+  Star           Star[]
+
+  MasterProducts MasterProduct[]
+}
+
+model Order {
+  id                Int             @id @default(autoincrement())
+  total             Float
+  adress            String
+  date              DateTime
+  paymentType       String
+  withDelivery      Boolean
+  commentToDelivery String?
+  masters           Master[]
+  products          Product[]
+  tools             Tool[]
+  comments          Comment[]
+  CreatedAt         DateTime        @default(now())
+  OrderTools        OrderTools[]
+  OrderMasters      OrderMasters[]
+  OrderProducts     OrderProducts[]
+  OrderItems        OrderItem[]
+}
+
+model Star {
+  id       Int    @id @default(autoincrement())
+  User     User   @relation(fields: [userId], references: [id])
+  userId   Int
+  master   Master @relation(fields: [masterId], references: [id])
+  masterId Int
+  star     Float
+}
+
+model Comment {
+  id             Int              @id @default(autoincrement())
+  message        String
+  star           Float
+  orderId        Int
+  order          Order            @relation(fields: [orderId], references: [id])
+  User           User?            @relation(fields: [userId], references: [id])
+  userId         Int?
+  CreatedAt      DateTime         @default(now())
+  CommentMasters CommentMasters[]
+}
+
+model Contact {
+  id         Int      @id @default(autoincrement())
+  fullname   String
+  phone      String   @unique
+  address    String
+  message    String
+  tgUserName String?  @unique
+  tgChatId   String?
+  CreatedAt  DateTime @default(now())
+}
+
+model FAQ {
+  id        Int      @id @default(autoincrement())
+  question  String
+  answer    String
+  CreatedAt DateTime @default(now())
+}
+
+model GeneralInfo {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  links     String
+  phones    String
+  CreatedAt DateTime @default(now())
+}
+
+model BasketItem {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  productId Int?
+  product   Product? @relation(fields: [productId], references: [id])
+
+  prdQuantity Int?
+
+  toolId Int?
+  tool   Tool? @relation(fields: [toolId], references: [id])
+
+  toolQuantity Int?
+
+  CreatedAt DateTime @default(now())
+}
+
+model Showcase {
+  id             Int      @id @default(autoincrement())
+  name_uz        String
+  name_ru        String
+  name_en        String
+  description_uz String
+  description_ru String
+  description_en String
+  image          String
+  link           String
+  CreatedAt      DateTime @default(now())
+}
+
+model Partner {
+  id        Int      @id @default(autoincrement())
+  name_uz   String
+  name_ru   String
+  name_en   String
+  image     String
+  CreatedAt DateTime @default(now())
+}
+
+model ProductTools {
+  id        Int      @id @default(autoincrement())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  toolId    Int
+  createdAt DateTime @default(now())
+
+  @@unique([productId, toolId])
+}
+
+model OrderProducts {
+  id        Int      @id @default(autoincrement())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, productId])
+}
+
+model CommentMasters {
+  id        Int     @id @default(autoincrement())
+  comment   Comment @relation(fields: [commentId], references: [id])
+  commentId Int
+  master    Master  @relation(fields: [masterId], references: [id])
+  masterId  Int
+
+  star      Int
+  createdAt DateTime @default(now())
+
+  @@unique([commentId, masterId])
+}
+
+model OrderMasters {
+  id       Int         @id @default(autoincrement())
+  order    Order       @relation(fields: [orderId], references: [id])
+  orderId  Int
+  master   Master      @relation(fields: [masterId], references: [id])
+  masterId Int
+  status   OrderStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, masterId])
+}
+
+model OrderTools {
+  id        Int      @id @default(autoincrement())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+  tool      Tool     @relation(fields: [toolId], references: [id])
+  toolId    Int
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, toolId])
+}
+
+model MasterProduct {
+  id              Int   @id @default(autoincrement())
+  masterId        Int
+  productId       Int
+  levelId         Int
+  minWorkingHours Int
+  price_hourly    Float
+  price_daily     Float
+  experience      Int
+
+  master  Master  @relation(fields: [masterId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  level   level   @relation(fields: [levelId], references: [id])
+
+  @@unique([masterId, productId])
+}
+
+model OrderItem {
+  id    Int   @id @default(autoincrement())
+  order Order @relation(fields: [orderId], references: [id])
+
+  orderId Int
+
+  product     Product @relation(fields: [productId], references: [id])
+  productId   Int
+  prdQuantity Int
+
+  tool         Tool @relation(fields: [toolId], references: [id])
+  toolId       Int
+  toolQuantity Int
+
+  CreatedAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+  VIEWER_ADMIN
+  USER_FIZ
+  USER_YUR
+}
+
+enum UserType {
+  JISMONIY_SHAXS
+  YURIDIK_SHAXS
+}
+
+enum OrderStatus {
+  PENDING
+  ACTIVE
+  FINISHED
+}
