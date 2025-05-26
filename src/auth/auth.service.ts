@@ -77,6 +77,11 @@ export class AuthService {
       throw new BadRequestException('Region ID topilmadi');
     }
 
+    if (['ADMIN', 'SUPER_ADMIN', 'VIEWER_ADMIN'].includes(data.role)) {
+      throw new BadRequestException('Admin rollari bilan ro\'yxatdan o\'tolmaysiz');
+    }
+
+
     const hashedPassword = bcrypt.hashSync(data.password, 10);
 
     if (data.role === 'USER_FIZ') {
