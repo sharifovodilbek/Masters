@@ -43,5 +43,6 @@ jobs:
           script: |
             cd /home/ubuntu/nestjs-app
             npm install --omit=dev
+            npx prisma generate
             npx prisma migrate deploy
             pm2 restart ecosystem.config.js || pm2 start ecosystem.config.js
